@@ -68,7 +68,9 @@ class SlackBot extends Adapter
         @isLoaded = true
         # NOTE: will this only subscribe a partial user list because loadUsers has not yet completed? it will at least
         # subscribe to the users that were stored in the brain from the last run.
-        @presenceSub()
+        #
+        # run this on each connection, not just on robot construction
+        # @presenceSub()
 
     # Start logging in
     @client.connect()
@@ -133,6 +135,12 @@ class SlackBot extends Adapter
 
     # Tell Hubot we're connected so it can load scripts
     @emit "connected"
+
+    # inlining code.. :( @presenceSub is out of scope here? this = something other than Robot?
+    ids = for own id, user of @robot.brain.data.users when (not user.is_bot and not user.deleted)
+      id
+    @robot.logger.debug "SlackBot#presenceSub() Subscribing to presence for #{ids.length} users"
+    @client.rtm.subscribePresence ids
 
   ###*
   # Slack client has authenticated
